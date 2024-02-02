@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
@@ -9,10 +10,16 @@ import { PaginationDto } from 'src/common/Dto/pagination.Dto';
 @Injectable()
 export class PokemonService {
   
+  private defaultLimit:number
+  
   constructor(
     @InjectModel(Pokemon.name)
-    private readonly pokemonModel:Model<Pokemon>
-  ) {}
+    private readonly pokemonModel:Model<Pokemon>,
+    private readonly configService: ConfigService,
+
+    ) {
+    this.defaultLimit = configService.get<number>('defaultLimit')
+  }
 
   async create(createPokemonDto: CreatePokemonDto) {
     createPokemonDto.name = createPokemonDto.name.toLocaleLowerCase();
@@ -27,7 +34,7 @@ export class PokemonService {
 
   async findAll(paginationDto:PaginationDto) {
 
-    const { limit = 20 , offset = 200 } = paginationDto;
+    const { limit = this.defaultLimit , offset = 0 } = paginationDto;
 
     return await this.pokemonModel.find()
     .limit(limit)
@@ -100,32 +107,3 @@ export class PokemonService {
     throw new InternalServerErrorException('Can not update pokemon - Check server logs');
   }
 }
-// async update(term: string, updatePokemonDto: UpdatePokemonDto) {
-//     try {
-//         const pokemon = await this.findOne(term);
-
-//         if (updatePokemonDto.name) {
-//             updatePokemonDto.name = updatePokemonDto.name.toLocaleLowerCase();
-//         }
-
-//         // Verificar si hay otro Pokémon con el mismo nombre
-//         const existingPokemon = await this.pokemonModel.findOne({ name: updatePokemonDto.name });
-//         if (existingPokemon && existingPokemon.id !== pokemon.id) {
-//             throw new BadRequestException(`Ya existe un Pokémon con el nombre "${updatePokemonDto.name}" en la base de datos.`);
-//         }
-
-//         await pokemon.updateOne(updatePokemonDto, { new: true });
-
-//         return { ...pokemon.toJSON(), ...updatePokemonDto };
-//     } catch (error) {
-//         if (error instanceof BadRequestException) {
-//             throw error;
-//         } else if (error.code === 11000) {
-//             throw new BadRequestException(`El número (no) de Pokémon ya existe en la base de datos: ${JSON.stringify(error.keyValue)}`);
-//         } else {
-//             console.error(error);
-//             throw new InternalServerErrorException('No se puede actualizar el Pokémon - Consulta los registros del servidor.');
-//         }
-//     }
-// }
-
