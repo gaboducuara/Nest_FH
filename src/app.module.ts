@@ -21,7 +21,7 @@ import { JoiValidationSchema } from './config/joi.validation';
       rootPath: join(__dirname, '..', 'public'),
     }),
     //Estableciendo conexion a la base de datos
-    MongooseModule.forRoot( process.env.MONGODB ),
+    MongooseModule.forRoot( 'mongodb+srv://NestApiRest_pokemondb:HSChCFw6Vg8xFp1a@cluster0.hy1eh0u.mongodb.net/nest-pokemon' ),
     
     PokemonModule,
     
